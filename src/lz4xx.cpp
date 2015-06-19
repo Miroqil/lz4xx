@@ -1,6 +1,5 @@
 #include "lz4xx.h"
 
-// TODO - start(char** out)
 LZ4Encoder::LZ4Encoder()
 {
     __init(8192);
@@ -15,14 +14,14 @@ void LZ4Encoder::__init(const size_t blockSize)
 {
     ready = false;
     mBlockSize = blockSize;
-    mInPtr = NULL;
+    mOutPtr = NULL;
     mBlock = NULL;
 }
 
 int LZ4Encoder::start(FILE* out)
 {
     // set file
-    mInPtr = out;
+    mOutPtr = out;
     // init LZ4
     LZ4_resetStream(&mStream);
     // init block size
@@ -36,7 +35,7 @@ int LZ4Encoder::start(FILE* out)
 
 int LZ4Encoder::start(char** out, size_t* outlen)
 {
-    mInPtr = open_memstream(out, outlen);
+    mOutPtr = open_memstream(out, outlen);
     // init LZ4
     LZ4_resetStream(&mStream);
     // init block size
@@ -105,14 +104,14 @@ int LZ4Encoder::end()
         __flush();
     }
     int zero = 0;
-    fwrite(&zero, sizeof(zero), 1, mInPtr);
+    fwrite(&zero, sizeof(zero), 1, mOutPtr);
     if (mBlock != NULL)
     {
         delete[] mBlock;
     }
     if (memStream)
     {
-        fclose(mInPtr);
+        fclose(mOutPtr);
     }
     memStream = false;
     ready = false;
@@ -130,9 +129,9 @@ int LZ4Encoder::__flush()
         return -1; // if compression fails
     }
     printf("%6d bytes -> %6d bytes, compression rate %10.2f%%\n", (int) rawBlockSize, (int) cBlockSize, (float)(100.0 * cBlockSize)/rawBlockSize);
-    // write to mInPtr
-    fwrite(&cBlockSize, sizeof(cBlockSize), 1, mInPtr);
-    fwrite(&cBlock, 1, (size_t) cBlockSize, mInPtr);
+    // write to mOutPtr
+    fwrite(&cBlockSize, sizeof(cBlockSize), 1, mOutPtr);
+    fwrite(&cBlock, 1, (size_t) cBlockSize, mOutPtr);
     // reset block
     mBlockSpace = mBlockSize;
     return 0;
@@ -234,13 +233,4 @@ int LZ4Decoder::end()
     ready = false;
     return 0;
 }
-
-
-
-/*
-enum {
-    BLOCK_BYTES = 1024 * 8,
-//  BLOCK_BYTES = 1024 * 64,
-};
-*/
 

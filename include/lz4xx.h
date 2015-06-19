@@ -3,6 +3,16 @@
 #include <cstdio>
 #include <cstring>
 
+class LZ4DualBuffer
+{
+    public:
+        size_t size;
+        size_t space;
+        FILE* fd;
+        void* buf;
+        void* rdptr;
+};
+
 class LZ4Encoder
 {
     public:
@@ -27,7 +37,9 @@ class LZ4Encoder
         size_t mBlockSpace;         // availalble space in block
         char*  mBlock;              // I/O block
         LZ4_stream_t mStream;       // stream
-        FILE* mInPtr;                // file
+        FILE* mOutPtr;              // file
+        char** mOutBuf;             // output buffer
+        size_t mOutBufSize;         // output buffer size
         int __write(void* in, const size_t inlen, bool isFile);
         int __flush();              // internal - write block to file
         void __init(const size_t blockSize = 8192);
