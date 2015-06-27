@@ -1,16 +1,22 @@
 #include "lz4.h"
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
-class LZ4DualBuffer
+class LZ4Buffer
 {
     public:
-        size_t size;
+        void open(char** inbuf);
+        void open(FILE* fd);
+        size_t write(const char* in, const size_t inlen);
+    protected:
+        char* expand(size_t newSpace);
+        char** buf;
+        char* ptr;
         size_t space;
-        FILE* fd;
-        void* buf;
-        void* rdptr;
+        size_t size;
+        bool isFile;
 };
 
 class LZ4Encoder

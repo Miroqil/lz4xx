@@ -1,5 +1,58 @@
 #include "lz4xx.h"
 
+void LZ4Buffer::open(char** inbuf)
+{
+    buf = inbuf;
+    space = 0;
+    size = 0;
+    ptr = *buf;
+    isFile = false;
+}
+
+void LZ4Buffer::open(FILE* fd)
+{
+    buf = (char**) &fd;
+    space = 0;
+    size = 0;
+    ptr = NULL;
+    isFile = true;
+}
+
+char* LZ4Buffer::expand(size_t newSpace)
+{
+    printf("Expand: %d\n", (int) newSpace);
+    return (char*)realloc(*buf, newSpace);
+}
+
+
+size_t LZ4Buffer::write(const char* in, const size_t inlen)
+{
+    if (!isFile)
+    {
+        size_t newSize = size + inlen;
+        printf("inlen %d size %d space %d\n", (int) inlen, (int) size, (int) space);
+        if (size + inlen > space)
+        {
+            size_t newSpace = (size + inlen) << 1;
+            *buf = expand(newSpace);
+            if (*buf == NULL)
+            {
+                return 0;
+            }
+            ptr = *buf + size;
+            space = newSpace;
+        }
+        memcpy(ptr, in, inlen);
+        ptr = ptr + inlen;
+        size = size + inlen;
+        return inlen;
+    }
+    else
+    {
+        return fwrite(in, 1, sizeof(inlen), (FILE*)*buf);
+    }
+}
+
 LZ4Encoder::LZ4Encoder()
 {
     __init(8192);

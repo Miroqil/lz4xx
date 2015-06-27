@@ -16,6 +16,16 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    char* xbuf;
+    LZ4Buffer x;
+    x.open(&xbuf);
+    for (int i =0 ; i< 31; i++)
+    {
+        x.write("Diu la sing\n", 12);
+    }
+    x.write("\0", 1);
+    printf("xxx %s\n", xbuf);
+
     // set up encoder and decoder
     size_t BLOCKSIZE = 8192;
     LZ4Encoder encoder(BLOCKSIZE);
