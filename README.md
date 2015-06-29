@@ -48,5 +48,5 @@ The source code of two demo programs are included in the "example" folder.
 
 # TODO
 * Operator overloading
-* Support C++ file s
+* Support C++ fstreams?
 
