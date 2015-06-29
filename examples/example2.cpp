@@ -33,9 +33,7 @@ int main(int argc, char* argv[])
 
     // encode
     encoder.open(test_data, strlen(test_data) + 1);
-    size_t newsize = encoder.encode(&lzBuf, &lzBufSize);
-
-    printf("encode: %d\n", (int)newsize);
+    encoder.encode(&lzBuf, &lzBufSize);
 
     // encode
     decoder.open(lzBuf, lzBufSize);
