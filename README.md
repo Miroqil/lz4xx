@@ -5,7 +5,7 @@ Tsz-Ho Yu (tszhoyu@gmail.com) @ 2015
 
 # Introduction
 
-This is an easy-to-use and independent data compression library based on the LZ4 algorithm. I started this project before I had another side project which needed lossless compression to big model files.
+This is an easy-to-use and independent data compression library based on the LZ4 algorithm. I started this project when I was working on another side project which needed lossless compression to big model files.
 
 About LZ4 (From Wikipedia): LZ4 is a lossless data compression algorithm that is focused on compression and decompression speed. It belongs to the LZ77 family of byte-oriented compression schemes. The algorithm gives a slightly worse compression ratio than the LZO algorithm - which in turn is worse than algorithms like gzip. However, compression speeds are similar to LZO and several times faster than gzip while decompression speeds can be significantly faster than LZO.
 
