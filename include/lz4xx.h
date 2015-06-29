@@ -53,16 +53,19 @@ class LZ4Encoder
         ~LZ4Encoder();
 
         // open input file
-        int open(FILE* in);
+        int open(FILE* out);
 
         // open input byte array
-        int open(char* in, size_t inlen);
+        int open(char** out, size_t* outlen);
 
         // encode to file
-        size_t encode(FILE* out);
+        size_t encode(FILE* in);
 
         // encode to byte array
-        size_t encode(char** out, size_t* outlen);
+        size_t encode(char* in, size_t inlen);
+
+        // close the encoding pipe
+        size_t close();
 
         // get total byte read and written
         size_t getTotalByteRead() const;
@@ -73,7 +76,7 @@ class LZ4Encoder
         size_t mBlockSpace;         // availalble space in block
         char*  mBlock;              // I/O block
 
-        size_t encode();
+        size_t encode(size_t inlen);
         size_t flush();              // internal - write block to file
         void init(const size_t blockSize = 8192);
 
@@ -93,16 +96,16 @@ class LZ4Decoder
         ~LZ4Decoder();
 
         // open input file
-        int open(FILE* in);
+        int open(FILE* out);
 
         // open input byte array
-        int open(const char* in, size_t inlen);
+        int open(char** out, size_t* outlen);
 
         // decode to file
-        size_t decode(FILE* out);
+        size_t decode(FILE* in);
 
         // decode to byte array
-        size_t decode(char** out, size_t* outlen);
+        size_t decode(char* in, size_t inlen);
 
         // get total byte read and written
         size_t getTotalByteRead() const;
@@ -112,7 +115,7 @@ class LZ4Decoder
         size_t mBlockSize;                  // block size
 
         void init(const size_t blockSize = 8192);
-        size_t decode();
+        size_t decode(size_t inlen);
 
         LZ4InStream mIn;
         LZ4OutStream mOut;

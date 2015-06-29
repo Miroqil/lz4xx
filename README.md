@@ -17,6 +17,7 @@ It provides a more intuitive way to compress/decompress d, for example:
     fd_out = fopen("compressed.data.lz4", "w");
     encoder.open(fd_in);
     encoder.encode(fd_out);
+    encoder.close();
     fclose(fd_in);
     fclose(fd_out);
 
@@ -25,8 +26,16 @@ It provides a more intuitive way to compress/decompress d, for example:
     char input_msg[] = "This is a test string";
     char *compressed_msg = NULL;
     size_t compressed_size = 0;
-    encoder.open(input_msg, strlen(input_msg) + 1);     // include end-of-string
-    encoder.encode(&compressed_msg, &compressed_size);  // lzBuf is allocated automatically
+
+    /* open output array, it is allocated automatically */
+    encoder.open(&compressed_msg, &compressed_size);
+
+    /* encoder the encode inputs separately */
+    for (int i = 0; i < 10; i++)
+    {
+        encoder.encode(input_msg, strlen(input_msg));
+    }
+    encoder.close();
 
 # Installation
 

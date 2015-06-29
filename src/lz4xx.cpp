@@ -119,58 +119,72 @@ void LZ4Encoder::init(const size_t blockSize)
     mBlock = new char[mBlockSize];
 }
 
-int LZ4Encoder::open(FILE* in)
+int LZ4Encoder::open(FILE* out)
 {
     // set file
-    mIn.open(in);
-    // init LZ4
-    LZ4_resetStream(&mStream);
-    // init block size
-    mBlockSpace = mBlockSize;
-    return 0;
-}
-
-int LZ4Encoder::open(char* in, size_t inlen)
-{
-    // init LZ4
-    mIn.open(in, inlen);
-    LZ4_resetStream(&mStream);
-    // init block size
-    mBlockSpace = mBlockSize;
-    return 0;
-}
-
-size_t LZ4Encoder::encode(char** out, size_t* outlen)
-{
-    mOut.open(out, outlen);
-    return encode();
-}
-
-size_t LZ4Encoder::encode(FILE* out)
-{
     mOut.open(out);
-    return encode();
+    // init LZ4
+    LZ4_resetStream(&mStream);
+    // init block size
+    mBlockSpace = mBlockSize;
+    return 0;
 }
 
-size_t LZ4Encoder::encode()
+int LZ4Encoder::open(char** out, size_t* outlen)
 {
+    // init LZ4
+    mOut.open(out, outlen);
+    LZ4_resetStream(&mStream);
+    // init block size
+    mBlockSpace = mBlockSize;
+    return 0;
+}
+
+size_t LZ4Encoder::encode(char* in, size_t inlen)
+{
+    mIn.open(in, inlen);
+    return encode(inlen);
+}
+
+size_t LZ4Encoder::encode(FILE* in)
+{
+    mIn.open(in);
+    return encode(-1);
+}
+
+size_t LZ4Encoder::encode(size_t inlen)
+{
+    size_t remain = inlen;
     while (1)
     {
         char* bufPtr = mBlock + mBlockSize - mBlockSpace;
-        size_t readSize = mIn.read(bufPtr, mBlockSpace);
-        mTotalRead += readSize;
+
+        size_t toRead = (remain > mBlockSpace || inlen < 0) ? mBlockSpace : remain;
+
+        size_t readSize = mIn.read(bufPtr, toRead);
         if (readSize == 0)
         {
-            int zero = 0;
-            mTotalWritten += flush();
-            mTotalWritten += mOut.write(&zero, sizeof(zero));
             break;
         }
+        remain -= readSize;
+        mTotalRead += readSize;
         mBlockSpace -= readSize;
+        if (remain <= 0)
+        {
+            break;
+        }
         if (mBlockSpace == 0){
             mTotalWritten += flush();
         }
     }
+    return mTotalWritten;
+}
+
+size_t LZ4Encoder::close()
+{
+    int zero = 0;
+    mTotalWritten += flush();
+    mTotalWritten += mOut.write(&zero, sizeof(zero));
     return mTotalWritten;
 }
 
@@ -232,54 +246,61 @@ void LZ4Decoder::init(const size_t blockSize)
     mTotalRead = 0;
 }
 
-int LZ4Decoder::open(FILE* in)
-{
-    mIn.open(in);
-    LZ4_setStreamDecode(&mStreamDecode, NULL, 0);
-    return 0;
-}
-
-int LZ4Decoder::open(const char* in, size_t inlen)
-{
-    mIn.open(in, inlen);
-    LZ4_setStreamDecode(&mStreamDecode, NULL, 0);
-    return 0;
-}
-
-size_t LZ4Decoder::decode(FILE* out)
+int LZ4Decoder::open(FILE* out)
 {
     mOut.open(out);
-    return decode();
+    LZ4_setStreamDecode(&mStreamDecode, NULL, 0);
+    return 0;
 }
 
-size_t LZ4Decoder::decode(char** out, size_t* outlen)
+int LZ4Decoder::open(char** out, size_t* outlen)
 {
     mOut.open(out, outlen);
-    return decode();
+    LZ4_setStreamDecode(&mStreamDecode, NULL, 0);
+    return 0;
 }
 
-size_t LZ4Decoder::decode()
+size_t LZ4Decoder::decode(FILE* in)
+{
+    mIn.open(in);
+    return decode(-1);
+}
+
+size_t LZ4Decoder::decode(char* in, size_t inlen)
+{
+    mIn.open(in, inlen);
+    return decode(inlen);
+}
+
+size_t LZ4Decoder::decode(size_t inlen)
 {
     char outBuf[mBlockSize];
     int inBlockSize;
     char cmpBuf[LZ4_COMPRESSBOUND(mBlockSize)];
+    size_t remain = inlen;
     while (1)
     {
         size_t readCount = mIn.read(&inBlockSize, sizeof(inBlockSize));
+        mTotalRead += readCount;
         if (inBlockSize <= 0 || readCount != sizeof(inBlockSize))
         {
             return 0;
         }
         size_t readCountBuf = mIn.read(cmpBuf, inBlockSize);
+        mTotalRead += readCountBuf;
         if ((int)readCountBuf != inBlockSize)
         {
             break;
         }
         int outBlockSize = LZ4_decompress_safe_continue(&mStreamDecode, cmpBuf, outBuf, inBlockSize, mBlockSize);
-        mTotalRead += readCountBuf + readCount;
         mTotalWritten += mOut.write(outBuf, outBlockSize);
+        remain = inlen - outBlockSize;
+        if (remain < mBlockSize)
+        {
+            break;
+        }
     }
-    return mTotalWritten;
+    return inlen - remain;
 }
 
 size_t LZ4Decoder::getTotalByteWritten() const

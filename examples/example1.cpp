@@ -38,8 +38,9 @@ int main(int argc, char* argv[])
     // Encode a file to file
     fd_in = fopen(inPath, "r");
     fd_out = fopen(lzPath, "w");
-    encoder.open(fd_in);
-    encoder.encode(fd_out);
+    encoder.open(fd_out);
+    encoder.encode(fd_in);
+    encoder.close();
     fclose(fd_in);
     fclose(fd_out);
 

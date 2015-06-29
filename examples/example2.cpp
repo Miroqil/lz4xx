@@ -4,12 +4,7 @@
 
 #include "lz4xx.h"
 
-char test_data[] = "\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget cursus leo, pellentesque cursus ex. Fusce porttitor mauris velit, vel consequat massa sagittis sed. Donec felis mi, semper vitae lacus et, mattis faucibus odio. In a tempor diam. Phasellus vestibulum cursus felis in blandit. Etiam erat nibh, semper vitae quam non, ullamcorper molestie arcu. Proin cursus magna id mauris dapibus aliquet. Donec nec laoreet nunc.\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget cursus leo, pellentesque cursus ex. Fusce porttitor mauris velit, vel consequat massa sagittis sed. Donec felis mi, semper vitae lacus et, mattis faucibus odio. In a tempor diam. Phasellus vestibulum cursus felis in blandit. Etiam erat nibh, semper vitae quam non, ullamcorper molestie arcu. Proin cursus magna id mauris dapibus aliquet. Donec nec laoreet nunc.\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget cursus leo, pellentesque cursus ex. Fusce porttitor mauris velit, vel consequat massa sagittis sed. Donec felis mi, semper vitae lacus et, mattis faucibus odio. In a tempor diam. Phasellus vestibulum cursus felis in blandit. Etiam erat nibh, semper vitae quam non, ullamcorper molestie arcu. Proin cursus magna id mauris dapibus aliquet. Donec nec laoreet nunc.\
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce eget cursus leo, pellentesque cursus ex. Fusce porttitor mauris velit, vel consequat massa sagittis sed. Donec felis mi, semper vitae lacus et, mattis faucibus odio. In a tempor diam. Phasellus vestibulum cursus felis in blandit. Etiam erat nibh, semper vitae quam non, ullamcorper molestie arcu. Proin cursus magna id mauris dapibus aliquet. Donec nec laoreet nunc.\
-";
+char test_data[] = "Quick brown fox jumps over the lazy dog\n";
 
 int main(int argc, char* argv[])
 {
@@ -31,13 +26,21 @@ int main(int argc, char* argv[])
 
     lzBufSize = 0; // initialize buffer size
 
-    // encode
-    encoder.open(test_data, strlen(test_data) + 1);
-    encoder.encode(&lzBuf, &lzBufSize);
+    printf("\nEXAMPLE 2: \n(1) COMPRESS 20 TEST DATA\n(2) DECOMPRESS THE TEST DATA. \n");
 
     // encode
-    decoder.open(lzBuf, lzBufSize);
-    decoder.decode(&outBuf, &outSize);
+    char eos = '\0';
+    encoder.open(&lzBuf, &lzBufSize);
+    for (int i = 0; i < 20; i++)
+    {
+        encoder.encode(test_data, strlen(test_data));
+    }
+    encoder.encode(&eos, sizeof(eos));
+    encoder.close();
+
+    // encode
+    decoder.open(&outBuf, &outSize);
+    decoder.decode(lzBuf, lzBufSize);
 
     // display results
     printf("\nINPUT TEXT:\n%s\n", test_data);
