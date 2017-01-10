@@ -193,7 +193,10 @@ size_t LZ4Encoder::flush()
     // current block size
     size_t written = 0;
     size_t rawBlockSize = mBlockSize - mBlockSpace;
-    char cBlock[LZ4_COMPRESSBOUND(rawBlockSize)];
+    //char cBlock[LZ4_COMPRESSBOUND(rawBlockSize)]; //expression must have a const size
+	char *cBlock;
+	cBlock = (char *)malloc(LZ4_COMPRESSBOUND(rawBlockSize));
+	
     int cBlockSize = LZ4_compress_fast_continue(&mStream, mBlock, cBlock, rawBlockSize, sizeof(cBlock), 1);
     if (cBlockSize <= 0)
     {
@@ -274,9 +277,15 @@ size_t LZ4Decoder::decode(char* in, size_t inlen)
 
 size_t LZ4Decoder::decode(size_t inlen)
 {
-    char outBuf[mBlockSize];
+	//char outBuf[size]; //expression must have a const size
+    char *outBuf;
+	outBuf = (char *)malloc(sizeof(size_t) * mBlockSize);
+
+	//char cmpBuf[LZ4_COMPRESSBOUND(mBlockSize)]; //expression must have a const size
+	char *cmpBuf;
+	cmpBuf = (char *)malloc(LZ4_COMPRESSBOUND(mBlockSize));
+    
     int inBlockSize;
-    char cmpBuf[LZ4_COMPRESSBOUND(mBlockSize)];
     size_t remain = inlen;
     while (1)
     {
